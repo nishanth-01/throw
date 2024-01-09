@@ -1,2 +1,2 @@
-# swish
-2D Game Inspired from basketball
+# Throw
+Simple 2D game inspired from basketball

@@ -7,29 +7,46 @@ export default class Game {
 
   screenWidth: number;
   screenHeight: number;
-  angle: number;
+  angle = 0; // with respect to positive x-axis
 
   ball: PIXI.Container;
   jumpButtonContainer: PIXI.Container;
+  target: PIXI.Container;
 
-  ballRadius = 5;
+  ballRadius = 10;
+  targetWidth = 50;
+  targetHeight = 5;
 
   constructor(document: Document) {
     this.document = document;
   }
 
   private loadGraphics() {
-    // jump ball
+    // ball
     this.ball = new PIXI.Graphics()
       .beginFill(0xffffff)
       .drawCircle(
         this.ballRadius, this.screenHeight-this.ballRadius, this.ballRadius)
       .endFill();
 
-    // jump button setup
+    // jump button
     this.jumpButtonContainer = new PIXI.Text('JUMP', new PIXI.TextStyle({
       fill: 'white'
     }));
+
+    // target
+    this.target = new PIXI.Graphics()
+      .beginFill(0xffffff)
+      .drawRect(
+        this.screenWidth - this.targetWidth,
+        this.screenHeight - this.targetHeight,
+        this.targetWidth,
+        this.targetHeight)
+      .endFill();
+
+    this.app.stage.addChild(this.jumpButtonContainer);
+    this.app.stage.addChild(this.ball);
+    this.app.stage.addChild(this.target);
   }
 
   private loadInputListeners() {
@@ -59,6 +76,10 @@ export default class Game {
     });
   }
 
+  private onViewportChange() {
+    // TODO: implement
+  }
+
   start() {
     const root = this.document.body;
 
@@ -66,23 +87,16 @@ export default class Game {
       width: root.clientWidth,
       height: root.clientHeight,
     });
-    // TODO: remove ts ignore
+    // TODO: remove ts-ignore
     // @ts-ignore
     root.appendChild(this.app.view);
 
     this.screenWidth = this.app.renderer.width;
     this.screenHeight = this.app.renderer.height;
 
-    this.angle = 0; // with respect to positive x-axis
+    this.angle = 0;
 
     this.loadGraphics();
     this.loadInputListeners();
-
-    this.app.stage.addChild(this.jumpButtonContainer);
-    this.app.stage.addChild(this.ball);
   }
 };
-
-
-
-
