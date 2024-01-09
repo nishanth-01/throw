@@ -6,7 +6,9 @@ export default class Game {
 
   screenWidth: number;
   screenHeight: number;
-  angle = 0; // with respect to positive x-axis
+
+  initialAngle = 0; // with respect to positive x-axis // TODO: units?
+  initialVelocity = 10; // TODO: implement // TODO: units?
 
   inputDisabled = false;
 
@@ -14,6 +16,7 @@ export default class Game {
   target: PIXI.Container;
 
   ballRadius = 10;
+  ballWeight = 0; //TODO: implement
   targetWidth = 50;
   targetHeight = 5;
 
@@ -64,6 +67,7 @@ export default class Game {
 
         console.log('ticker stopped');
 
+        // TODO: reload
         this.inputDisabled = false;
       }
 
@@ -107,8 +111,6 @@ export default class Game {
 
     this.screenWidth = this.app.renderer.width;
     this.screenHeight = this.app.renderer.height;
-
-    this.angle = 0;
 
     this.loadGraphics();
     this.loadInputListeners();
