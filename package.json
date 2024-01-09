@@ -1,0 +1,25 @@
+{
+  "name": "throw",
+  "version": "0.0.0",
+  "description": "Simple 2D game inspired from basketball",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "start": "webpack serve --open"
+  },
+  "author": "nishanth",
+  "license": "ISC",
+  "dependencies": {
+    "@pixi/ui": "^0.10.2",
+    "pixi.js": "^7.3.3"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}
