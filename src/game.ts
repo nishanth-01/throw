@@ -1,27 +1,118 @@
 import * as PIXI from 'pixi.js';
 
+/* Units
+ * - displacement (px)
+ * - angle (radians)
+ */
+
+
+const G = 0.003; // acceleration due to gravity
+
+function rad(deg: number): number {
+  return deg * Math.PI / 180;
+}
+
 export default class Game {
-  document: Document;
-  app: PIXI.Application;
+  private static ANGLE_MAX = rad(88);
+  private static ANGLE_MIN = rad(10);
+  private static ANGLE_DEFAULT = rad(45);
+  private static ANGLE_STEP = rad(1);
 
-  screenWidth: number;
-  screenHeight: number;
+  private static VELOCITY_MIN = 0.5;
+  private static VELOCITY_MAX = 3;
+  private static VELOCITY_DEFAULT = 1.45;
+  private static VELOCITY_STEP = 0.1;
 
-  initialAngle = 0; // with respect to positive x-axis // TODO: units?
-  initialVelocity = 10; // TODO: implement // TODO: units?
+  private document: Document;
+  private app: PIXI.Application;
 
-  inputDisabled = false;
+  private screenWidth: number;
+  private screenHeight: number;
 
-  ball: PIXI.Container;
-  target: PIXI.Container;
+  // with respect to positive x-axis, anti-clockwise
+  private launchAngle = Game.ANGLE_DEFAULT;
+  private launchVelocity = Game.VELOCITY_DEFAULT;
 
-  ballRadius = 10;
-  ballWeight = 0; //TODO: implement, high weight should look metally
-  targetWidth = 50;
-  targetHeight = 5;
+  private inputDisabled = false;
+
+  private ball: PIXI.Container;
+  private ballRadius = 10;
+  private ballWeight = 0; //TODO: implement, heavy ball should look metally
+
+  private target: PIXI.Container;
+  private targetWidth = 20;
+  private targetHeight = 5;
+
+  private ballTicker: PIXI.Ticker;
+
 
   constructor(document: Document) {
     this.document = document;
+  }
+
+  private setAngle(newAngle: number) {
+    if(this.inputDisabled) {
+      console.log('can\'t set angle, input disabled');
+      return;
+    }
+
+    if(newAngle > Game.ANGLE_MAX) {
+      console.log('max angle reached');
+      return;
+    }
+    if(newAngle < Game.ANGLE_MIN) {
+      console.log('min angle reached');
+      return;
+    }
+
+    this.launchAngle = newAngle;
+    console.log('angle set to', this.launchAngle, 'radians');
+  }
+
+  increaseAngle() {
+    this.setAngle(this.launchAngle + Game.ANGLE_STEP);
+  }
+
+  decreaseAngle() {
+    this.setAngle(this.launchAngle - Game.ANGLE_STEP);
+  }
+
+  private setVelocity(newVelocity: number) {
+    if(this.inputDisabled) {
+      console.log('can\'t set velocity, input disabled');
+      return;
+    }
+
+    if(newVelocity > Game.VELOCITY_MAX) {
+      console.log('max velocity reached');
+      return;
+    }
+    if(newVelocity < Game.VELOCITY_MIN) {
+      console.log('min velocity reached');
+      return;
+    }
+
+    this.launchVelocity = newVelocity;
+    console.log('velocity set to', this.launchVelocity, 'px/ms');
+  }
+
+  increaseVelocity() {
+    this.setVelocity(this.launchVelocity + Game.VELOCITY_STEP);
+  }
+
+  decreaseVelocity() {
+    this.setVelocity(this.launchVelocity - Game.VELOCITY_STEP);
+  }
+
+  private didHit() {
+    const targetBound = this.ball.getBounds();
+    const ballBound = this.target.getBounds();
+
+    // TODO: check at bottom and sides may not be necessary
+    return ballBound.x < targetBound.x + targetBound.width
+      && ballBound.x + ballBound.width > targetBound.x
+      && ballBound.y < targetBound.y + targetBound.height
+      && ballBound.y + ballBound.height > targetBound.y;
   }
 
   private loadGraphics() {
@@ -36,14 +127,15 @@ export default class Game {
     this.target = new PIXI.Graphics()
       .beginFill(0xffffff)
       .drawRect(
-        this.screenWidth - this.targetWidth,
+        this.screenWidth - this.targetWidth - 100,
         this.screenHeight - this.targetHeight,
         this.targetWidth,
         this.targetHeight)
       .endFill();
 
-    this.app.stage.addChild(this.ball);
-    this.app.stage.addChild(this.target);
+    this.ballTicker = new PIXI.Ticker();
+
+    this.app.stage.addChild(this.ball, this.target);
   }
 
   private trajectoryX(xInitialVelocity: number) {
@@ -54,62 +146,55 @@ export default class Game {
 
   private trajectoryY(yInitialVelocity: number) {
     return (deltaMS: number): number => {
-      yInitialVelocity += 0.0002;
+      yInitialVelocity += G * deltaMS;
+
       return yInitialVelocity * deltaMS;
     };
-    //return (0.0002 * elapsedMS - 0.1) * deltaMS;
   }
 
-  private shoot() {
+  private reload() {
+    this.ball.x = this.ball.y = 0;
+    // TODO: implement
+  }
+
+  launch() {
+    if(this.inputDisabled) {
+      console.log('can\'t launch, input disabled');
+      return;
+    }
+
     this.inputDisabled = true;
 
-    const ticker = new PIXI.Ticker();
-
     let elapsedMS = 0;
-    // TODO: get initial velocity using angle
-    let deltaX = this.trajectoryX(0.4);
-    let deltaY = this.trajectoryY(-0.4);
+    let deltaX = this.trajectoryX(
+      this.launchVelocity * Math.cos(this.launchAngle));
+    let deltaY = this.trajectoryY(
+      -(this.launchVelocity * Math.sin(this.launchAngle)));
 
-    const fn = () => {
-      const deltaMS = ticker.deltaMS;
+    const onChange = () => {
+      const deltaMS = this.ballTicker.deltaMS;
 
-      const deltaYNext = deltaY(deltaMS);
+      this.ball.x += deltaX(deltaMS);
+      this.ball.y += deltaY(deltaMS);
 
-      if((this.ball.y + deltaYNext) > 0) {
-        ticker.stop();
-        ticker.remove(fn);
+      const hit = this.didHit();
+      if(this.ball.y > 0 || hit) {
+        console.log(hit ? 'Hit!' : 'Miss :(');
 
-        console.log('ticker stopped');
+        this.ballTicker.stop();
+        this.ballTicker.remove(onChange);
 
-        this.ball.x = this.ball.y = 0;
-        // TODO: reload
+        this.reload();
         this.inputDisabled = false;
 
         return;
       }
 
       elapsedMS += deltaMS;
-      this.ball.x += deltaX(deltaMS);
-      this.ball.y += deltaYNext;
     };
 
-    ticker.add(fn);
-
-    ticker.start();
-  }
-
-  private loadInputListeners() {
-    addEventListener('keydown', (event: KeyboardEvent) => {
-      if(this.inputDisabled) {
-        //TODO: inform user
-        console.log(`input disabled, '${event.key}' pressed`);
-        return;
-      } 
-
-      if(event.key === 'Enter') {
-        this.shoot();
-      }
-    });
+    this.ballTicker.add(onChange);
+    this.ballTicker.start();
   }
 
   private onViewportChange() {
@@ -131,6 +216,5 @@ export default class Game {
     this.screenHeight = this.app.renderer.height;
 
     this.loadGraphics();
-    this.loadInputListeners();
   }
 };
