@@ -32,7 +32,6 @@ export default class Game {
         this.ballRadius, this.screenHeight-this.ballRadius, this.ballRadius)
       .endFill();
 
-
     // target
     this.target = new PIXI.Graphics()
       .beginFill(0xffffff)
@@ -47,13 +46,13 @@ export default class Game {
     this.app.stage.addChild(this.target);
   }
 
-  private getX(xInitialVelocity: number) {
+  private trajectoryX(xInitialVelocity: number) {
     return (deltaMS: number) => {
       return xInitialVelocity * deltaMS;
     };
   }
 
-  private getY(yInitialVelocity: number) {
+  private trajectoryY(yInitialVelocity: number) {
     return (deltaMS: number): number => {
       yInitialVelocity += 0.0002;
       return yInitialVelocity * deltaMS;
@@ -68,15 +67,15 @@ export default class Game {
 
     let elapsedMS = 0;
     // TODO: get initial velocity using angle
-    let xDelta = this.getX(0.4);
-    let yDelta = this.getY(-0.4);
+    let deltaX = this.trajectoryX(0.4);
+    let deltaY = this.trajectoryY(-0.4);
 
     const fn = () => {
       const deltaMS = ticker.deltaMS;
 
-      const yDeltaNext = yDelta(deltaMS);
+      const deltaYNext = deltaY(deltaMS);
 
-      if((this.ball.y + yDeltaNext) > 0) {
+      if((this.ball.y + deltaYNext) > 0) {
         ticker.stop();
         ticker.remove(fn);
 
@@ -90,8 +89,8 @@ export default class Game {
       }
 
       elapsedMS += deltaMS;
-      this.ball.x += xDelta(deltaMS);
-      this.ball.y += yDeltaNext;
+      this.ball.x += deltaX(deltaMS);
+      this.ball.y += deltaYNext;
     };
 
     ticker.add(fn);
