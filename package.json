@@ -1,7 +1,7 @@
 {
   "name": "throw",
   "version": "0.0.0",
-  "description": "Simple 2D game inspired from basketball",
+  "description": "A simple 2D target hitting game inspired from golf",
   "private": "true",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
