@@ -16,7 +16,7 @@ export default class Game {
   target: PIXI.Container;
 
   ballRadius = 10;
-  ballWeight = 0; //TODO: implement
+  ballWeight = 0; //TODO: implement, high weight should look metally
   targetWidth = 50;
   targetHeight = 5;
 
@@ -47,32 +47,51 @@ export default class Game {
     this.app.stage.addChild(this.target);
   }
 
+  private getX(xInitialVelocity: number) {
+    return (deltaMS: number) => {
+      return xInitialVelocity * deltaMS;
+    };
+  }
+
+  private getY(yInitialVelocity: number) {
+    return (deltaMS: number): number => {
+      yInitialVelocity += 0.0002;
+      return yInitialVelocity * deltaMS;
+    };
+    //return (0.0002 * elapsedMS - 0.1) * deltaMS;
+  }
+
   private shoot() {
     this.inputDisabled = true;
 
     const ticker = new PIXI.Ticker();
 
-    let elapsedTime = 0;
+    let elapsedMS = 0;
+    // TODO: get initial velocity using angle
+    let xDelta = this.getX(0.4);
+    let yDelta = this.getY(-0.4);
 
     const fn = () => {
-      if(elapsedTime == -1) {
-        ticker.stop();
-        console.log('\'ticker.lastTime\' is -1');
-      }
+      const deltaMS = ticker.deltaMS;
 
-      const x = -4e-4 * (elapsedTime**2/2) + 0.8*elapsedTime;
-      if(x < 0) {
+      const yDeltaNext = yDelta(deltaMS);
+
+      if((this.ball.y + yDeltaNext) > 0) {
         ticker.stop();
         ticker.remove(fn);
 
         console.log('ticker stopped');
 
+        this.ball.x = this.ball.y = 0;
         // TODO: reload
         this.inputDisabled = false;
+
+        return;
       }
 
-      this.ball.x = x;
-      elapsedTime += ticker.deltaMS;
+      elapsedMS += deltaMS;
+      this.ball.x += xDelta(deltaMS);
+      this.ball.y += yDeltaNext;
     };
 
     ticker.add(fn);
