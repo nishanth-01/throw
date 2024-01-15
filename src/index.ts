@@ -1,32 +1,18 @@
-import Game from './game';
+import * as PIXI from 'pixi.js';
+import * as navigate from "./navigate";
+import Game from './Game';
 
-const game = new Game(document);
-game.start();
+// dom element to attach to
+const root = document.body;
 
-addEventListener('keydown', (event: KeyboardEvent) => {
-  switch(event.key) {
-    case ' ':
-      game.launch();
-      return;
-    case 'W':
-    case 'w':
-      game.increaseAngle();
-      return;
-    case 'S':
-    case 's':
-      game.decreaseAngle();
-      return;
-    case 'A':
-    case 'a':
-      game.increaseVelocity();
-      return;
-    case 'D':
-    case 'd':
-      game.decreaseVelocity();
-      return;
-    default:
-      // TODO: show controls
-      console.log(`no handler for '${event.key}' key`);
-      return;
-  }
+export const app = new PIXI.Application({
+  width: root.clientWidth,
+  height: root.clientHeight,
 });
+
+
+// TODO: remove ts-ignore
+// @ts-ignore
+root.appendChild(app.view);
+
+navigate.start();

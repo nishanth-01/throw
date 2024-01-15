@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { app } from './index';
 
 
 const G = 0.003; // acceleration due to gravity
@@ -18,8 +19,7 @@ export default class Game {
   private static VELOCITY_DEFAULT = 1.45;
   private static VELOCITY_STEP = 0.1;
 
-  private document: Document;
-  private app: PIXI.Application;
+  public view = new PIXI.Container();
 
   private screenWidth: number;
   private screenHeight: number;
@@ -41,10 +41,6 @@ export default class Game {
   private ballTicker: PIXI.Ticker;
 
 
-  constructor(document: Document) {
-    this.document = document;
-  }
-
   private setAngle(newAngle: number) {
     if(this.inputDisabled) {
       console.log('can\'t set angle, input disabled');
@@ -64,14 +60,6 @@ export default class Game {
     console.log('angle set to', this.launchAngle, 'radians');
   }
 
-  increaseAngle() {
-    this.setAngle(this.launchAngle + Game.ANGLE_STEP);
-  }
-
-  decreaseAngle() {
-    this.setAngle(this.launchAngle - Game.ANGLE_STEP);
-  }
-
   private setVelocity(newVelocity: number) {
     if(this.inputDisabled) {
       console.log('can\'t set velocity, input disabled');
@@ -89,14 +77,6 @@ export default class Game {
 
     this.launchVelocity = newVelocity;
     console.log('velocity set to', this.launchVelocity, 'px/ms');
-  }
-
-  increaseVelocity() {
-    this.setVelocity(this.launchVelocity + Game.VELOCITY_STEP);
-  }
-
-  decreaseVelocity() {
-    this.setVelocity(this.launchVelocity - Game.VELOCITY_STEP);
   }
 
   private didHit() {
@@ -131,7 +111,7 @@ export default class Game {
 
     this.ballTicker = new PIXI.Ticker();
 
-    this.app.stage.addChild(this.ball, this.target);
+    this.view.addChild(this.ball, this.target);
   }
 
   private trajectoryX(xInitialVelocity: number) {
@@ -198,19 +178,38 @@ export default class Game {
   }
 
   start() {
-    const root = this.document.body;
-
-    this.app = new PIXI.Application({
-      width: root.clientWidth,
-      height: root.clientHeight,
-    });
-    // TODO: remove ts-ignore
-    // @ts-ignore
-    root.appendChild(this.app.view);
-
-    this.screenWidth = this.app.renderer.width;
-    this.screenHeight = this.app.renderer.height;
+    this.screenWidth = app.renderer.width;
+    this.screenHeight = app.renderer.height;
 
     this.loadGraphics();
+
+    // TODO: use the containers 'addEventListener'
+    addEventListener('keydown', (event: KeyboardEvent) => {
+      switch(event.key) {
+        case ' ':
+          this.launch();
+          return;
+        case 'W':
+        case 'w':
+          this.setAngle(this.launchAngle + Game.ANGLE_STEP);
+          return;
+        case 'S':
+        case 's':
+          this.setAngle(this.launchAngle - Game.ANGLE_STEP);
+          return;
+        case 'A':
+        case 'a':
+          this.setVelocity(this.launchVelocity + Game.VELOCITY_STEP);
+          return;
+        case 'D':
+        case 'd':
+          this.setVelocity(this.launchVelocity - Game.VELOCITY_STEP);
+          return;
+        default:
+          // TODO: show controls
+          console.log(`no handler for '${event.key}' key`);
+          return;
+      }
+    });
   }
 };
