@@ -1,10 +1,5 @@
 import * as PIXI from 'pixi.js';
 
-/* Units
- * - displacement (px)
- * - angle (radians)
- */
-
 
 const G = 0.003; // acceleration due to gravity
 
@@ -105,6 +100,7 @@ export default class Game {
   }
 
   private didHit() {
+    // TODO: use ball shaped 'hitArea' instead of boundbox
     const targetBound = this.ball.getBounds();
     const ballBound = this.target.getBounds();
 
@@ -197,7 +193,7 @@ export default class Game {
     this.ballTicker.start();
   }
 
-  private onViewportChange() {
+  private onResize() {
     // TODO: implement
   }
 
