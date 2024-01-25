@@ -8,6 +8,3 @@
 # Features
 - command line version?
 - touch device support
-
-# Input
-- make capital keys take more steps

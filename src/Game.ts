@@ -172,18 +172,13 @@ export default class Game {
     this.ballTicker.start();
   }
 
-  private onResize() {
-    // TODO: implement
-  }
-
   start() {
     this.screenWidth = app.renderer.width;
     this.screenHeight = app.renderer.height;
 
     this.loadGraphics();
 
-    // TODO: use the containers 'addEventListener'
-    addEventListener('click', (event: PointerEvent) => {
+    app.view.addEventListener('click', (event: PointerEvent) => {
       // left click
       if(event.button === 0) {
         this.launch();
@@ -192,7 +187,7 @@ export default class Game {
     });
 
     // @ts-ignore
-    addEventListener('pointermove', (e: PointerEvent) => {
+    app.view.addEventListener('pointermove', (e: PointerEvent) => {
       // @ts-ignore
       const adj = e.x;
       const opp = this.screenHeight- e.y;
