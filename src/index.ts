@@ -1,8 +1,6 @@
 import * as PIXI from 'pixi.js';
-import * as navigate from "./navigate";
 import Game from './Game';
 
-// dom element to attach to
 const root = document.body;
 
 export const app = new PIXI.Application({
@@ -15,4 +13,12 @@ export const app = new PIXI.Application({
 // @ts-ignore
 root.appendChild(app.view);
 
-navigate.start();
+const game = new Game();
+game.start();
+app.stage.addChild(game.view);
+
+window.addEventListener('resize', () => {
+  // TODO: resize after throw event finishes
+  app.renderer.view.style.width = `${window.innerWidth}px`;
+  app.renderer.view.style.height = `${window.innerHeight}px`;
+});
