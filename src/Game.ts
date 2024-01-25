@@ -12,14 +12,12 @@ export default class Game {
   private static ANGLE_MAX = rad(88);
   private static ANGLE_MIN = rad(10);
   private static ANGLE_DEFAULT = rad(45);
-  private static ANGLE_STEP = rad(1);
 
   private static VELOCITY_MIN = 0.5;
   private static VELOCITY_MAX = 3;
   private static VELOCITY_DEFAULT = 1.45;
-  private static VELOCITY_STEP = 0.1;
 
-  public view = new PIXI.Container();
+  public view: PIXI.Container;
 
   private screenWidth: number;
   private screenHeight: number;
@@ -57,7 +55,6 @@ export default class Game {
     }
 
     this.launchAngle = newAngle;
-    console.log('angle set to', this.launchAngle, 'radians');
   }
 
   private setVelocity(newVelocity: number) {
@@ -92,6 +89,8 @@ export default class Game {
   }
 
   private loadGraphics() {
+    this.view = new PIXI.Container();
+
     // ball
     this.ball = new PIXI.Graphics()
       .beginFill(0xffffff)
@@ -184,32 +183,22 @@ export default class Game {
     this.loadGraphics();
 
     // TODO: use the containers 'addEventListener'
-    addEventListener('keydown', (event: KeyboardEvent) => {
-      switch(event.key) {
-        case ' ':
-          this.launch();
-          return;
-        case 'W':
-        case 'w':
-          this.setAngle(this.launchAngle + Game.ANGLE_STEP);
-          return;
-        case 'S':
-        case 's':
-          this.setAngle(this.launchAngle - Game.ANGLE_STEP);
-          return;
-        case 'A':
-        case 'a':
-          this.setVelocity(this.launchVelocity + Game.VELOCITY_STEP);
-          return;
-        case 'D':
-        case 'd':
-          this.setVelocity(this.launchVelocity - Game.VELOCITY_STEP);
-          return;
-        default:
-          // TODO: show controls
-          console.log(`no handler for '${event.key}' key`);
-          return;
+    addEventListener('click', (event: PointerEvent) => {
+      // left click
+      if(event.button === 0) {
+        this.launch();
+        return;
       }
+    });
+
+    // @ts-ignore
+    addEventListener('pointermove', (e: PointerEvent) => {
+      // @ts-ignore
+      const adj = e.x;
+      const opp = this.screenHeight- e.y;
+      const angleRadians = Math.atan(opp/adj);
+      
+      this.setAngle(angleRadians);
     });
   }
 };

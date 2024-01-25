@@ -7,13 +7,7 @@ A simple 2D target hitting game inspired from golf ([play](dist/index.html)).
 
 ## Controls
 
-| Key | Action |
-|-|-|
-| `'w' (or) 'W'` | Increase angle |
-| `'s' (or) 'S'` | Decrease angle |
-| `'a' (or) 'A'` | Increase force |
-| `'d' (or) 'D'` | Decrease force |
-| `' '` | Launch |
+Aim with mouse, shoot with left click.
 
 ## Run Locally
 
