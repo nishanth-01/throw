@@ -7,7 +7,10 @@ A simple 2D target hitting game inspired from golf ([play](dist/index.html)).
 
 ## Controls
 
-Aim with mouse, shoot with left click.
+1. Aim with mouse
+1. shoot with left click
+
+> force is proportional to distance from pointer to launcher.
 
 ## Run Locally
 

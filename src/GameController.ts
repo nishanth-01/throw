@@ -1,69 +1,78 @@
-import { Application, Container } from "pixi.js";
+import { Application, Container, Point, Rectangle } from "pixi.js";
+
+import State from "./game-states/State";
+import InitialState from "./game-states/InitialState";
+import OnAirState from "./game-states/OnAirState";
+import EndState from "./game-states/EndState";
+
 import GameView from './GameView';
 import GameModel from './GameModel';
 
-export default class GameController implements State {
-  private _state: State;
+export default class GameController {
+  private app: Application;
+  private state: State;
 
-  private _view: GameView;
-  private _model: GameModel;
+  public initialState: InitialState;
+  public onAirState: OnAirState;
+  public endState: EndState;
 
-  public init(app: Application) {
-    
+  //TODO: make this private or read only
+  private view: GameView;
+  private model: GameModel;
+
+  public onEndCallback: (hit: boolean) => void;
+
+  public constructor(app: Application, onEndCallback: (hit: boolean) => void) {
+    this.app = app;
+    this.onEndCallback = onEndCallback;
+
+    this.view = new GameView(this);
+    this.model = new GameModel(this.view);
+
+    this.initialState = new InitialState(this);
+    this.onAirState = new OnAirState(this);
+    this.endState = new EndState(this);
   }
 
-  public get view(): Container {
-    return this._view.view;
+  public init(): Container {
+    this.changeState(this.initialState);
+
+    const view = this.view.init();
+    this.model.init(this.app.screen);
+
+    return view;
   }
 
-  public onPointerMove(screenWidth: number, screenHeight: number, x: number, y: number) {
-    this._state.onPointerMove(screenWidth, screenHeight, x, y);
+  public getScreen(): Rectangle {
+    return this.app.screen
   }
 
-  public onClick(screenWidth: number, screenHeight: number, x: number, y: number) {
-    this._state.onPointerMove(screenWidth, screenHeight, x, y);
+  public getModel(): GameModel {
+    return this.model
   }
 
-  public launch(deltaFn: (deltaMS: number) => { deltaX: number, deltaY: number }) {
-    this._state.launch(deltaFn);
+  public resize(): void {
+    this.state.resize();
   }
 
-  public changeLauncherAngle(angle: number) {
-    this._state.changeLauncherAngle(angle);
+  public changeState(state: State) {
+    this.state = state;
   }
 
-  public changeLauncherVelocity(angle: number) {
-    this._state.changeLauncherVelocity(angle);
+  public onPointerMove(pointerPos: Point) {
+    this.state.onPointerMove(pointerPos);
   }
 
-  public resizeView(screenWidth: number, screenHeight: number) {
-    this._state.resizeView(screenWidth, screenHeight);
+  public onClick() {
+    this.state.onClick();
   }
 
-  public resizeModel(screenWidth: number, screenHeight: number) {
-    this._state.resizeModel(screenWidth, screenHeight);
+  public launchComplete(hit: boolean): void {
+    this.state.launchComplete(hit);
+  }
+
+  public loadLevel(): void {
+    this.state.loadLevel();
   }
 }
 
-interface State {
-  // x, y with respect to launcher
-  onPointerMove: (screenWidth: number, screenHeight: number, x: number, y: number) => void;
-  onClick: (screenWidth: number, screenHeight: number, x: number, y: number) => void;
-
-  launch: (deltaFn: (deltaMS: number) => { deltaX: number, deltaY: number }) => void;
-
-  changeLauncherAngle: (angle: number) => void;
-  changeLauncherVelocity: (angle: number) => void;
-
-  resizeView: (screenWidth: number, screenHeight: number) => void;
-  resizeModel: (screenWidth: number, screenHeight: number) => void;
-}
-
-class InitialState implements State {
-}
-
-class OnAirState implements State {
-}
-
-class EndState implements State {
-}
