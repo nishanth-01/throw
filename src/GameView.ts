@@ -1,43 +1,52 @@
-import { Container, Graphics, DisplayObject, Ticker } from "pixi.js";
+import * as PIXI from "pixi.js";
+import "@pixi/events";
+
+import GameController from "./GameController";
+
+//TODO: update view only when new position is different
 
 export default class GameView {
-  private _view = new Container();
+  private controller: GameController;
+  private view: PIXI.Container;
 
-  private ballTicker = new Ticker();
+  private ballTicker: PIXI.Ticker;
 
-  private ball: DisplayObject;
-  private target: DisplayObject;
+  private background: PIXI.Graphics;
+  private ball: PIXI.Graphics;
+  private target: PIXI.Graphics;
 
-  private ballRadius = 10;
+  public constructor(controller: GameController) {
+    this.controller = controller;
 
-  private targetWidth = 20;
-  private targetHeight = 5;
+    this.view = new PIXI.Container();
 
-  public get view() : Container {
-    return this._view;
-  }
-
-  public init(width: number, height: number) {
+    this.ballTicker = new PIXI.Ticker();
     this.ballTicker.autoStart = true;
 
-    // ball
-    this.ball = new Graphics()
-      .beginFill(0xffffff)
-      .drawCircle(
-        this.ballRadius, height-this.ballRadius, this.ballRadius)
-      .endFill();
+    this.background = new PIXI.Graphics();
+    this.ball = new PIXI.Graphics();
+    this.target = new PIXI.Graphics();
+  }
 
-    // target
-    this.target = new Graphics()
-      .beginFill(0xffffff)
-      .drawRect(
-        width - this.targetWidth - 100,
-        height - this.targetHeight,
-        this.targetWidth,
-        this.targetHeight)
-      .endFill();
+  public init(): PIXI.Container {
+    this.background.eventMode = 'static';
+    this.ball.eventMode = 'none';
+    this.target.eventMode = 'none';
 
-    this._view.addChild(this.ball, this.target);
+    this.background.addEventListener('click', (e: PointerEvent) => {
+      if(e.button === 0) {
+        this.controller.onClick();
+        return;
+      }
+    });
+
+    this.background.addEventListener('pointermove', (e: PointerEvent) => {
+      this.controller.onPointerMove(new PIXI.Point(e.x, e.y));
+    });
+
+    this.view.addChild(this.background, this.ball, this.target);
+
+    return this.view;
   }
 
   private didHit() {
@@ -53,22 +62,23 @@ export default class GameView {
   }
 
 
-  public launch(deltaX, deltaY, onEnd: (hit: boolean) => void) {
-
+  public launch(
+      xDelta: (deltaMS: number) => number,
+      yDelta: (deltaMS: number) => number
+  ) {
     let elapsedMS = 0;
 
     const onChange = () => {
       const deltaMS = this.ballTicker.deltaMS;
 
-      this.ball.x += deltaX(deltaMS);
-      this.ball.y += deltaY(deltaMS);
+      this.ball.x += xDelta(deltaMS);
+      this.ball.y += yDelta(deltaMS);
 
       const hit = this.didHit();
       if(this.ball.y > 0 || hit) {
         this.ballTicker.remove(onChange);
 
-        //TODO: try using async/await instead of callback
-        onEnd(hit);
+        this.controller.launchComplete(hit);
         return;
       }
 
@@ -76,6 +86,39 @@ export default class GameView {
     };
 
     this.ballTicker.add(onChange);
+  }
+
+  public updateBackground(pos: PIXI.Rectangle) {
+    this.background
+      .clear()
+      .beginFill(0xffffff)
+      .drawRect(pos.x, pos.y, pos.width, pos.height)
+      .endFill();
+  }
+
+  public updateLauncher(pos: PIXI.Point) {}
+
+  public updateLauncherAngle(angle: number) {}
+
+  public updateLauncherForce(force: number) {}
+
+  public updateTarget(pos: PIXI.Rectangle) {
+    this.target
+      .clear()
+      .beginFill(0x000000)
+      .drawRect(pos.x, pos.y, pos.width, pos.height)
+      .endFill();
+  }
+
+  public updateProjectile(pos: PIXI.Point, radius: number) {
+    this.ball.x = 0;
+    this.ball.y = 0;
+
+    this.ball
+      .clear()
+      .beginFill(0x000000)
+      .drawCircle(pos.x, pos.y, radius)
+      .endFill();
   }
 
   //TODO: public resize() {}
